@@ -1,10 +1,10 @@
-import tweepy
-import requests
+from slackclient import SlackClient
 from bs4 import BeautifulSoup
 import re
-import webbrowser
 import urllib.parse
-import keys
+import key
+from time import strftime
+import requests
 
 url = 'https://www.packtpub.com/packt/offers/free-learning'
 headers = {'user-agent': 'Mozilla/5.0 (platform; rv:geckoversion) Gecko/geckotrail Firefox/firefoxversion'}
@@ -45,29 +45,24 @@ print(dotd_summary)
 dotd_image = soup.find('div', {'class': 'dotd-main-book-image'})
 im = dotd_image.find('img')['src']
 dotd_image = 'http:'+im
-dotd_image = urllib.parse.quote_plus(dotd_image)
+print(dotd_image)
 
 ## dotd_image contains the url for image ##
 
-auth = tweepy.OAuthHandler(keys.CONSUMER_KEY, keys.CONSUMER_SECRET)
-auth.set_access_token(keys.ACCESS_TOKEN, keys.ACCESS_SECRET)
+#sending slack notification
 
-api = tweepy.API(auth)
+channel = 'packt-tracer'
+token = key.token
+sc = SlackClient(token)
 
-auth_url = auth.get_authorization_url()
+image_url = dotd_image
+attachments = attachments = [{"title": dotd_title,
+                              "image_url": image_url}]
+date = str(strftime("%A, %d %b %Y"))
+date = "[{}] {}".format(date, dotd_title)
+link = "Click to download: "+url
+message = date + '\n\n' + dotd_summary + '\n' + link
 
-webbrowser.open(auth_url)
-print("Get the PIN from the window")
+sc.api_call('chat.postMessage', channel=channel, text=message, username='Packt Bot', icon_emoji=':robot_face:', attachments=attachments)
 
-verifier = input("PIN: ").strip()
-auth.get_access_token(verifier)
-
-access_key = auth.access_token
-access_secret = auth.access_token_secret
-
-auth.set_access_token(access_key, access_secret)
-api = tweepy.API(auth)
-
-api.send_direct_message(screen_name = 'veedhee_', text = 'PACKT BOOK OF THE DAY: '+ dotd_title)
-api.send_direct_message(screen_name = 'veedhee_', text = dotd_summary)
-api.send_direct_message(screen_name = 'veedhee_', text = dotd_image)
+print('Success!')
