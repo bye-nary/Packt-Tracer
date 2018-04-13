@@ -45,6 +45,7 @@ print(dotd_summary)
 dotd_image = soup.find('div', {'class': 'dotd-main-book-image'})
 im = dotd_image.find('img')['src']
 dotd_image = 'http:'+im
+dotd_image = re.sub(" ", "%20", dotd_image)
 print(dotd_image)
 
 ## dotd_image contains the url for image ##
